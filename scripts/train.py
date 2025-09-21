@@ -88,7 +88,7 @@ class FactGuardTrainer:
                 'model_name': 'bert-base-uncased'
             },
             'misinformation': {
-                'labels': ['reliable', 'unreliable', 'mixed'],
+                'labels': ['Real', 'Fake', 'NaN' ],
                 'model_name': 'roberta-base'
             }
         }
@@ -158,9 +158,11 @@ class FactGuardTrainer:
     
     def create_datasets(self, texts: List[str], labels: List[int], test_size: float = 0.2):
         """Create train and validation datasets"""
+        stratify = labels if len(set(labels)) > 1 and min([labels.count(l) for l in set(labels)]) > 1 else None
+
         train_texts, val_texts, train_labels, val_labels = train_test_split(
-            texts, labels, test_size=test_size, random_state=42, stratify=labels
-        )
+        texts, labels, test_size=test_size, random_state=42, stratify=stratify)
+
         
         train_dataset = FactGuardDataset(train_texts, train_labels, self.tokenizer)
         val_dataset = FactGuardDataset(val_texts, val_labels, self.tokenizer)
@@ -189,13 +191,14 @@ class FactGuardTrainer:
             weight_decay=kwargs.get('weight_decay', 0.01),
             logging_dir=f'{output_dir}/logs',
             logging_steps=100,
-            evaluation_strategy="steps",
-            eval_steps=500,
-            save_strategy="steps",
+            #evaluation_strategy="steps",
+            #eval_steps=500,
+            #save_strategy="steps",
             save_steps=500,
-            load_best_model_at_end=True,
-            metric_for_best_model="eval_loss",
-            greater_is_better=False,
+            #load_best_model_at_end=True,
+            #metric_for_best_model="eval_loss",
+            #greater_is_better=False,
+            do_eval=True,
             report_to="wandb" if kwargs.get('use_wandb', False) else None,
         )
         
@@ -205,7 +208,7 @@ class FactGuardTrainer:
             args=training_args,
             train_dataset=train_dataset,
             eval_dataset=val_dataset,
-            callbacks=[EarlyStoppingCallback(early_stopping_patience=3)]
+            #callbacks=[EarlyStoppingCallback(early_stopping_patience=3)]
         )
         
         # Train model
