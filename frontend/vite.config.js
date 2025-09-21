@@ -13,5 +13,10 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api/, '')
       }
     }
+  },
+  preview: {
+    port: process.env.PORT || 3000,
+    host: '0.0.0.0',
+    allowedHosts: ['factgaurd.onrender.com', '.onrender.com']
   }
 })
